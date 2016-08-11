@@ -5122,7 +5122,7 @@
   position:absolute;
   left:0px;
   top:0px;
-  width:107px;
+  width:99px;
   height:25px;
   background:inherit;
   background-color:rgba(151, 124, 171, 1);
@@ -5143,9 +5143,9 @@
 }
 #u327 {
   position:absolute;
-  left:948px;
+  left:953px;
   top:261px;
-  width:107px;
+  width:99px;
   height:25px;
   font-family:'Microsoft YaHei Regular', 'Microsoft YaHei';
   font-weight:400;
@@ -5158,7 +5158,7 @@
   position:absolute;
   left:8px;
   top:4px;
-  width:91px;
+  width:83px;
   word-wrap:break-word;
 }
 #u329_img {
@@ -5203,7 +5203,7 @@
   position:absolute;
   left:0px;
   top:0px;
-  width:107px;
+  width:99px;
   height:25px;
   background:inherit;
   background-color:rgba(151, 124, 171, 1);
@@ -5224,9 +5224,9 @@
 }
 #u332 {
   position:absolute;
-  left:1240px;
+  left:1244px;
   top:254px;
-  width:107px;
+  width:99px;
   height:25px;
   font-family:'Microsoft YaHei Regular', 'Microsoft YaHei';
   font-weight:400;
@@ -5239,7 +5239,7 @@
   position:absolute;
   left:8px;
   top:4px;
-  width:91px;
+  width:83px;
   word-wrap:break-word;
 }
 #u334_img {
@@ -5284,14 +5284,14 @@
   position:absolute;
   left:0px;
   top:0px;
-  width:107px;
+  width:99px;
   height:25px;
   background:inherit;
-  background-color:rgba(151, 124, 171, 1);
+  background-color:rgba(87, 117, 138, 1);
   box-sizing:border-box;
   border-width:1px;
   border-style:solid;
-  border-color:rgba(255, 255, 255, 1);
+  border-color:rgba(127, 174, 152, 1);
   border-radius:6px;
   -moz-box-shadow:none;
   -webkit-box-shadow:none;
@@ -5301,26 +5301,24 @@
   font-style:normal;
   font-size:12px;
   color:#CCCCCC;
-  text-align:left;
 }
 #u337 {
   position:absolute;
-  left:1240px;
-  top:425px;
-  width:107px;
+  left:580px;
+  top:654px;
+  width:99px;
   height:25px;
   font-family:'Microsoft YaHei Regular', 'Microsoft YaHei';
   font-weight:400;
   font-style:normal;
   font-size:12px;
   color:#CCCCCC;
-  text-align:left;
 }
 #u338 {
   position:absolute;
   left:8px;
   top:4px;
-  width:91px;
+  width:83px;
   word-wrap:break-word;
 }
 #u339_img {
@@ -5328,14 +5326,14 @@
   left:0px;
   top:0px;
   width:7px;
-  height:10px;
+  height:7px;
 }
 #u339 {
   position:absolute;
-  left:1330px;
-  top:433px;
+  left:666px;
+  top:664px;
   width:7px;
-  height:10px;
+  height:7px;
   -webkit-transform:rotate(270deg);
   -moz-transform:rotate(270deg);
   -ms-transform:rotate(270deg);
@@ -5382,10 +5380,11 @@
   font-style:normal;
   font-size:12px;
   color:#CCCCCC;
+  text-align:left;
 }
 #u342 {
   position:absolute;
-  left:580px;
+  left:885px;
   top:654px;
   width:99px;
   height:25px;
@@ -5394,6 +5393,7 @@
   font-style:normal;
   font-size:12px;
   color:#CCCCCC;
+  text-align:left;
 }
 #u343 {
   position:absolute;
@@ -5411,7 +5411,7 @@
 }
 #u344 {
   position:absolute;
-  left:666px;
+  left:971px;
   top:664px;
   width:7px;
   height:7px;
@@ -5465,7 +5465,7 @@
 }
 #u347 {
   position:absolute;
-  left:885px;
+  left:1189px;
   top:654px;
   width:99px;
   height:25px;
@@ -5492,7 +5492,7 @@
 }
 #u349 {
   position:absolute;
-  left:971px;
+  left:1275px;
   top:664px;
   width:7px;
   height:7px;
@@ -5528,11 +5528,11 @@
   width:99px;
   height:25px;
   background:inherit;
-  background-color:rgba(87, 117, 138, 1);
+  background-color:rgba(151, 124, 171, 1);
   box-sizing:border-box;
   border-width:1px;
   border-style:solid;
-  border-color:rgba(127, 174, 152, 1);
+  border-color:rgba(255, 255, 255, 1);
   border-radius:6px;
   -moz-box-shadow:none;
   -webkit-box-shadow:none;
@@ -5546,8 +5546,8 @@
 }
 #u352 {
   position:absolute;
-  left:1189px;
-  top:654px;
+  left:1244px;
+  top:427px;
   width:99px;
   height:25px;
   font-family:'Microsoft YaHei Regular', 'Microsoft YaHei';
@@ -5569,14 +5569,14 @@
   left:0px;
   top:0px;
   width:7px;
-  height:7px;
+  height:10px;
 }
 #u354 {
   position:absolute;
-  left:1275px;
-  top:664px;
+  left:1330px;
+  top:435px;
   width:7px;
-  height:7px;
+  height:10px;
   -webkit-transform:rotate(270deg);
   -moz-transform:rotate(270deg);
   -ms-transform:rotate(270deg);
