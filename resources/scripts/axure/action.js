@@ -1208,8 +1208,8 @@
 
                     var stop = options.stop;
                     var ratio = stop.instant ? 1 : (stop.end - stop.start) / (stop.len - stop.start);
-                    widthChangedPercent = (size.width - boundingRect.width) / boundingRect.width * ratio;
-                    heightChangedPercent = (size.height - boundingRect.height) / boundingRect.height * ratio;
+                    widthChangedPercent = Math.round(size.width - boundingRect.width) / boundingRect.width * ratio;
+                    heightChangedPercent = Math.round(size.height - boundingRect.height) / boundingRect.height * ratio;
                     resizeOffset = _applyAnchorToResizeOffset(widthChangedPercent * boundingRect.width, heightChangedPercent * boundingRect.height, resizeInfo.anchor);
                     if(stop.instant || stop.end == stop.len) idToResizeMoveState[elementId].resizeResult = undefined;
 
@@ -1302,8 +1302,8 @@
                     var size = _getSizeFromInfo(resizeInfo, eventInfoCopy, oldWidth, oldHeight, elementId);
                     var newWidth = size.width;
                     var newHeight = size.height;
-                    var deltaWidth = (newWidth - oldWidth)*ratio;
-                    var deltaHeight = (newHeight - oldHeight)*ratio;
+                    var deltaWidth = Math.round(newWidth - oldWidth) * ratio;
+                    var deltaHeight = Math.round(newHeight - oldHeight) * ratio;
                     newWidth = oldWidth + deltaWidth;
                     newHeight = oldHeight + deltaHeight;
 

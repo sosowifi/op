@@ -67,23 +67,25 @@
             query.expanded(defaultExpanded);
         });
 
-        // reset all the positioning on the style tags, including size and transformation
-        $axure('*').each(function(diagramObject, elementId) {
+        // reset all the inline positioning from move and rotate actions including size and transformation
+        $axure('*').each(function (diagramObject, elementId) {
+            if(diagramObject.isContained) return;
+            if($ax.getParentRepeaterFromElementIdExcludeSelf(elementId)) return;
+
             var element = document.getElementById(elementId);
-            if(element && !diagramObject.isContained) {
+            if(element) {
                 var resetCss = {
                     top: "", left: "", width: "", height: "", opacity: "",
                     transform: "", webkitTransform: "", MozTransform: "", msTransform: "", OTransform: ""
                 };
                 var query = $(element);
-                var children = query.children();
-                var sketchyImage = $('#' + $ax.repeater.applySuffixToElementId(elementId, '_image_sketch'));
-                var textChildren = query.children('div.text');
-
                 query.css(resetCss);
-                if(children) children.css(resetCss);
-                if(sketchyImage) sketchyImage.css(resetCss);
-                if(textChildren) textChildren.css(resetCss);
+                var isPanel = $ax.public.fn.IsDynamicPanel(diagramObject.type);
+                if(!isPanel || diagramObject.fitToContent) { //keeps size on the panel states when switching adaptive views to optimize fit to panel
+                    if(diagramObject.fitToContent) $ax.dynamicPanelManager.setFitToContentCss(elementId, true);
+                    var children = query.children();
+                    if(children.length) children.css(resetCss);
+                }
 
                 $ax.dynamicPanelManager.resetFixedPanel(diagramObject, element);
                 $ax.dynamicPanelManager.resetAdaptivePercentPanel(diagramObject, element);
@@ -98,14 +100,18 @@
             $ax.style.reselectElements();
         }
 
-        $axure('*').each(function(obj, elementId) {
+        $axure('*').each(function (obj, elementId) {
+            if($ax.getParentRepeaterFromElementIdExcludeSelf(elementId)) return;
+
             $ax.style.updateElementIdImageStyle(elementId); // When image override exists, fix styling/borders
         });
 
         // reset all the images only if we're going back to the default view
         if(!viewId) {
             _updateInputVisibility('', $axure('*'));
-            $axure('*').each(function(diagramObject, elementId) {
+            $axure('*').each(function (diagramObject, elementId) {
+                if($ax.getParentRepeaterFromElementIdExcludeSelf(elementId)) return;
+
                 $ax.placeholderManager.refreshPlaceholder(elementId);
 
                 var images = diagramObject.images;
@@ -147,18 +153,20 @@
                     }
                 }
 
+                //align all text
                 var child = $jobj(elementId).children('.text');
                 if(child.length) $ax.style.transformTextWithVerticalAlignment(child[0].id, function() { });
             });
             // we have to reset visibility if we aren't applying a new view
             $ax.visibility.resetLimboAndHiddenToDefaults();
             $ax.repeater.refreshAllRepeaters();
-            $ax.dynamicPanelManager.updateAllFitPanels();
+            $ax.dynamicPanelManager.updateParentsOfNonDefaultFitPanels();
             $ax.dynamicPanelManager.updatePercentPanelCache($ax('*'));
         } else {
             $ax.visibility.clearLimboAndHidden();
             _applyView(viewId);
             $ax.repeater.refreshAllRepeaters();
+            $ax.dynamicPanelManager.updateParentsOfNonDefaultFitPanels();
         }
 
         $ax.adaptive.triggerEvent('viewChanged', {});
@@ -284,7 +292,7 @@
         });
 
         $ax.visibility.addLimboAndHiddenIds(limboIds, hiddenIds, query);
-        $ax.dynamicPanelManager.updateAllFitPanels();
+        //$ax.dynamicPanelManager.updateAllFitPanelsAndLayerSizeCaches();
         $ax.dynamicPanelManager.updatePercentPanelCache(query);
     };
 

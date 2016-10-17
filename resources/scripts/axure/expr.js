@@ -479,7 +479,6 @@ $axure.internal(function($ax) {
         var elementId = elementIds[0];
         var rects = new Object();
         var jObj = $jobj(elementId);
-        var axObj = $ax('#' + elementId);
         var invalid = jObj.length == 0;
         var parent = jObj;
         // Or are in valid if no obj can be found, or if it is not visible.
@@ -495,6 +494,7 @@ $axure.internal(function($ax) {
             return rects;
         }
 
+        var axObj = $ax('#' + elementId);
         rects.lastRect = new $ax.drag.Rectangle(
                 axObj.left(),
                 axObj.top(),

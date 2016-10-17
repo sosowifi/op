@@ -120,8 +120,9 @@ $axure.internal(function($ax) {
 
     AXURE_TO_JQUERY_EVENT_NAMES.onMouseDown = $ax.features.eventNames.mouseDownName;
     AXURE_TO_JQUERY_EVENT_NAMES.onMouseUp = $ax.features.eventNames.mouseUpName;
-
-    var _attachEvents = function (diagramObject, elementId) {
+    //for dp, if mouse entered without leaving, don't fire mouse enter again
+    var mouseEnterGuard = {};
+    var _attachEvents = function (diagramObject, elementId, doMouseEnterGuard) {
 
         var inputId = $ax.repeater.applySuffixToElementId(elementId, '_input');
         var id = $jobj(inputId).length ? inputId : elementId;
@@ -133,7 +134,12 @@ $axure.internal(function($ax) {
             _event[jQueryEventName](id,
             //this is needed to escape closure
                 (function(axEventObject) {
-                    return function(e) {
+                    return function (e) {
+                        if(e.type == 'mouseenter' && doMouseEnterGuard) {
+                            if(mouseEnterGuard[elementId]) return;
+                            else mouseEnterGuard[elementId] = true;
+                        }
+
                         $ax.setjBrowserEvent(e);
                         //                        console.log(axEventObject.description);
                         var eventInfo = $ax.getEventInfoFromEvent($ax.getjBrowserEvent(), false, elementId);
@@ -141,6 +147,12 @@ $axure.internal(function($ax) {
                     };
                 })(diagramObject.interactionMap[eventName])
             );
+
+            if(jQueryEventName.toLowerCase() == 'mouseenter' && doMouseEnterGuard) {
+                $jobj(elementId).on('mouseleave touchend', function() {
+                    mouseEnterGuard[elementId] = false;
+                });
+            }
         }
 
     };
@@ -600,17 +612,15 @@ $axure.internal(function($ax) {
                     window.lastFocusedControl = elementId;
                 });
             }
-
-
             // [MAS: Supressing events were here]
             _createProxies(dObj, elementId);
+            var isDynamicPanel = $ax.public.fn.IsDynamicPanel(dObj.type);
             if(dObj.interactionMap) {
-                _attachEvents(dObj, elementId);
+                _attachEvents(dObj, elementId, isDynamicPanel);
             };
 
-
             //attach button shape alternate styles
-            var needsMouseFilter = dObj.type != 'hyperlink' && !$ax.public.fn.IsLayer(dObj.type) && !$ax.public.fn.IsDynamicPanel(dObj.type) && dObj.type != 'richTextPanel' &&
+            var needsMouseFilter = dObj.type != 'hyperlink' && !$ax.public.fn.IsLayer(dObj.type) && !isDynamicPanel && dObj.type != 'richTextPanel' &&
                 !$ax.public.fn.IsRepeater(dObj.type) && !$ax.public.fn.IsCheckBox(dObj.type) && !$ax.public.fn.IsRadioButton(dObj.type) && !$ax.public.fn.IsTreeNodeObject(dObj.type);
             if(needsMouseFilter) {
                 $element.mouseenter(function() {
@@ -673,14 +683,14 @@ $axure.internal(function($ax) {
             var preeval = itemId && !allowItem;
 
             //initialize disabled elements, do this first before selected, cause if a widget is disabled, we don't want to apply selected style anymore
-            if (($ax.public.fn.IsVector(dObj.type) || $ax.public.fn.IsImageBox(dObj.type) || $ax.public.fn.IsDynamicPanel(dObj.type) || $ax.public.fn.IsLayer(dObj.type))
+            if (($ax.public.fn.IsVector(dObj.type) || $ax.public.fn.IsImageBox(dObj.type) || isDynamicPanel || $ax.public.fn.IsLayer(dObj.type))
                 && dObj.disabled && !preeval) {
                 if (!$axElement) $axElement = $ax('#' + elementId);
                 $axElement.enabled(false);
             }
 
             // Initialize selected elements if not in repeater
-            if(($ax.public.fn.IsVector(dObj.type) || $ax.public.fn.IsImageBox(dObj.type) || $ax.public.fn.IsDynamicPanel(dObj.type) || $ax.public.fn.IsLayer(dObj.type))
+            if(($ax.public.fn.IsVector(dObj.type) || $ax.public.fn.IsImageBox(dObj.type) || isDynamicPanel || $ax.public.fn.IsLayer(dObj.type))
                 && dObj.selected && !preeval) {
                 if(!$axElement) $axElement = $ax('#' + elementId);
                 $axElement.selected(true);
@@ -695,30 +705,10 @@ $axure.internal(function($ax) {
             // Initialize Placeholders. Right now this is text boxes and text areas.
             // Also, the assuption is being made that these widgets with the placeholder, have no other styles (this may change...)
             var hasPlaceholder = dObj.placeholderText == '' ? true : Boolean(dObj.placeholderText);
-            if (($ax.public.fn.IsTextArea(dObj.type) || $ax.public.fn.IsTextBox(dObj.type)) && hasPlaceholder) {
+            if(($ax.public.fn.IsTextArea(dObj.type) || $ax.public.fn.IsTextBox(dObj.type)) && hasPlaceholder) {
                 // This is needed to initialize the placeholder state
-                $jobj($ax.INPUT(elementId)).bind('keydown', function () {
-                    if(!dObj.HideHintOnFocused) {
-                        var id = this.id;
-                        var inputIndex = id.indexOf('_input');
-                        if(inputIndex == -1) return;
-                        var inputId = id.substring(0, inputIndex);
-
-                        if(!$ax.placeholderManager.isActive(inputId)) return;
-                        $ax.placeholderManager.updatePlaceholder(inputId, false, true);
-                    }
-                }).bind('keyup', function() {
-                    var id = this.id;
-                    var inputIndex = id.indexOf('_input');
-                    if(inputIndex == -1) return;
-                    var inputId = id.substring(0, inputIndex);
-
-                    if($ax.placeholderManager.isActive(inputId)) return;
-                    if(!dObj.HideHintOnFocused && !$jobj(id).val()) {
-                        $ax.placeholderManager.updatePlaceholder(inputId, true);
-                        $ax.placeholderManager.moveCaret(id, 0);
-                    }
-                }).bind('focus', function () {
+                var inputJobj = $jobj($ax.INPUT(elementId));
+                inputJobj.bind('focus', function () {
                     if(dObj.HideHintOnFocused) {
                         var id = this.id;
                         var inputIndex = id.indexOf('_input');
@@ -741,7 +731,49 @@ $axure.internal(function($ax) {
                     $ax.placeholderManager.updatePlaceholder(inputId, true);
                 });
 
-                $ax.placeholderManager.registerPlaceholder(elementId, dObj.placeholderText, $jobj($ax.INPUT(elementId)).attr('type') == 'password');
+                if(ANDROID) {
+                    //input fires before keyup, to avoid flicker, supported in ie9 and above
+                    inputJobj.bind('input', function() {
+                        if(!dObj.HideHintOnFocused) { //hide on type
+                            var id = this.id;
+                            var inputIndex = id.indexOf('_input');
+                            if(inputIndex == -1) return;
+                            var inputId = id.substring(0, inputIndex);
+
+                            if($ax.placeholderManager.isActive(inputId)) {
+                                $ax.placeholderManager.updatePlaceholder(inputId, false, true);
+                            } else if(!$jobj(id).val()) {
+                                $ax.placeholderManager.updatePlaceholder(inputId, true, false);
+                                $ax.placeholderManager.moveCaret(id, 0);
+                            }
+                        }
+                    });
+                } else {
+                    inputJobj.bind('keydown', function() {
+                        if(!dObj.HideHintOnFocused) {
+                            var id = this.id;
+                            var inputIndex = id.indexOf('_input');
+                            if(inputIndex == -1) return;
+                            var inputId = id.substring(0, inputIndex);
+
+                            if(!$ax.placeholderManager.isActive(inputId)) return;
+                            $ax.placeholderManager.updatePlaceholder(inputId, false, true);
+                        }
+                    }).bind('keyup', function() {
+                        var id = this.id;
+                        var inputIndex = id.indexOf('_input');
+                        if(inputIndex == -1) return;
+                        var inputId = id.substring(0, inputIndex);
+
+                        if($ax.placeholderManager.isActive(inputId)) return;
+                        if(!dObj.HideHintOnFocused && !$jobj(id).val()) {
+                            $ax.placeholderManager.updatePlaceholder(inputId, true);
+                            $ax.placeholderManager.moveCaret(id, 0);
+                        }
+                    });
+                }
+
+                $ax.placeholderManager.registerPlaceholder(elementId, dObj.placeholderText, inputJobj.attr('type') == 'password');
                 $ax.placeholderManager.updatePlaceholder(elementId, !($jobj($ax.repeater.applySuffixToElementId(elementId, '_input')).val()));
             }
 
@@ -782,7 +814,7 @@ $axure.internal(function($ax) {
             if($ax.features.supports.mobile) {
                 $element.bind($ax.features.eventNames.mouseDownName, function() { _setCanClick(true); });
 
-                if ($ax.public.fn.IsDynamicPanel(dObj.type)) {
+                if (isDynamicPanel) {
                     $element.scroll(function() { _setCanClick(false); });
                 }
             }
@@ -799,7 +831,7 @@ $axure.internal(function($ax) {
 
             // TODO: not sure if we need this. It appears to be working without
             //initialize panels for DynamicPanels
-            if ($ax.public.fn.IsDynamicPanel(dObj.type)) {
+            if (isDynamicPanel) {
                 $element.children().each(function() {
                     var parts = this.id.split('_');
                     var state = parts[parts.length - 1].substring(5);
@@ -831,7 +863,7 @@ $axure.internal(function($ax) {
             }
 
             // Attach handles for dynamic panels that propagate styles to inner items.
-            if (($ax.public.fn.IsDynamicPanel(dObj.type) || $ax.public.fn.IsLayer(dObj.type)) && dObj.propagate) {
+            if ((isDynamicPanel || $ax.public.fn.IsLayer(dObj.type)) && dObj.propagate) {
                 $element.mouseenter(function() {
                     dynamicPanelMouseOver(this.id);
                 }).mouseleave(function() {
@@ -932,7 +964,7 @@ $axure.internal(function($ax) {
             }
 
             // Attach dynamic panel synthetic scroll event
-            if ($ax.public.fn.IsDynamicPanel(dObj.type) && map && (map.onScroll || map.onScrollUp || map.onScrollDown)) {
+            if (isDynamicPanel && map && (map.onScroll || map.onScrollUp || map.onScrollDown)) {
                 var diagrams = dObj.diagrams;
                 for(var i = 0; i < diagrams.length; i++) {
                     var panelId = $ax.repeater.applySuffixToElementId(elementId, '_state' + i);

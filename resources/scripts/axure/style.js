@@ -245,7 +245,8 @@
     };
 
     var _generateSelectedState = function(id, selected) {
-        var mouseState = $ax.event.mouseDownObjectId == id ? MOUSE_DOWN : $ax.event.mouseOverIds.indexOf(id) != -1 ? MOUSE_OVER : NORMAL;
+        var mouseState = $ax.event.mouseDownObjectId == id ? MOUSE_DOWN : $.inArray(id, $ax.event.mouseOverIds) != -1 ? MOUSE_OVER : NORMAL;
+        //var mouseState = $ax.event.mouseDownObjectId == id ? MOUSE_DOWN : $ax.event.mouseOverIds.indexOf(id) != -1 ? MOUSE_OVER : NORMAL;
         return _generateMouseState(id, mouseState, selected);
     };
 
@@ -455,12 +456,14 @@
 
     var _getShapeIdFromText = $ax.style.GetShapeIdFromText = function(id) {
         if(!id) return undefined; // this is to prevent an infinite loop.
-        //return $jobj(id).parent().attr('id');
-        var current = $jobj(id).parent();
-        while(!current.is("body")) {
-            var currentId = current.attr('id');
+
+        var current = document.getElementById(id);
+        if(!current) return undefined;
+        current = current.parentElement;
+        while(current && current.tagName != 'BODY') {
+            var currentId = current.id;
             if(currentId && currentId != 'base') return $ax.visibility.getWidgetFromContainer(currentId);
-            current = current.parent();
+            current = current.parentElement;
         }
 
         return undefined;
@@ -486,9 +489,7 @@
         if(imageUrl) _applyImage(id, imageUrl, event);
 
         var style = _computeAllOverrides(id, undefined, event, $ax.adaptive.currentViewId);
-        if(!$.isEmptyObject(style)) {
-            _applyTextStyle(textId, style);
-        }
+        if(!$.isEmptyObject(style)) _applyTextStyle(textId, style);
 
         _updateStateClasses(id, event);
         _updateStateClasses($ax.repeater.applySuffixToElementId(id, '_div'), event);
@@ -507,7 +508,7 @@
         //} else {
             for (var i = 0; i < ALL_STATES.length; i++) jobj.removeClass(ALL_STATES[i]);
             if (event == 'mouseDown') jobj.addClass('mouseOver');
-            jobj.addClass(event);
+            if(event != 'normal') jobj.addClass(event);
         //}
     }
 
@@ -674,8 +675,9 @@
 
         var style = _computeFullStyle(shapeId, state, $ax.adaptive.currentViewId);
         var vAlign = style.verticalAlignment || 'middle';
-        var paddingLeft = Number(style.paddingLeft || 0);
-        paddingLeft += shapeObj && shapeObj.extraLeft || 0;
+
+        var paddingLeft = Number(style.paddingLeft) || 0;
+        paddingLeft += (Number(shapeObj && shapeObj.extraLeft) || 0);
         var paddingTop = style.paddingTop || 0;
         var paddingRight = style.paddingRight || 0;
         var paddingBottom = style.paddingBottom || 0;
@@ -782,23 +784,11 @@
     // this is for vertical alignments set on hidden objects
     var _idToAlignProps = {};
 
-    _style.checkAlignmentQueue = function (id) {
-        var index = queuedTextToAlign.indexOf(id);
-        if (index != -1) {
-            $ax.splice(queuedTextToAlign, index, 1);
-            _style.updateTextAlignmentForVisibility(id);
-        }
-    }
-
-    var queuedTextToAlign = [];
     $ax.style.updateTextAlignmentForVisibility = function (textId) {
         var textObj = $jobj(textId);
         // must check if parent id exists. Doesn't exist for text objs in check boxes, and potentially elsewhere.
         var parentId = textObj.parent().attr('id');
-        if (parentId && $ax.visibility.isContainer(parentId)) {
-            if (queuedTextToAlign.indexOf(textId) == -1) queuedTextToAlign.push(textId);
-            return;
-        }
+        if (parentId && $ax.visibility.isContainer(parentId)) return;
 
         var alignProps = _idToAlignProps[textId];
         if(!alignProps || !_getObjVisible(textId)) return;
@@ -806,7 +796,7 @@
         _setTextAlignment(textId, alignProps);
     };
 
-    var _getObjVisible = _style.getObjVisible = function(id) {
+    var _getObjVisible = _style.getObjVisible = function (id) {
         var element = document.getElementById(id);
         return element && (element.offsetWidth || element.offsetHeight);
     };
@@ -925,20 +915,11 @@
 
     $ax.style.clearAdaptiveStyles = function() {
         for(var shapeId in _adaptiveStyledWidgets) {
-            var elementIds = [shapeId];
             var repeaterId = $ax.getParentRepeaterFromScriptId(shapeId);
-            if(repeaterId) {
-                var itemIds = $ax.getItemIdsForRepeater(repeaterId);
-                elementIds = [];
-                for(var i = 0; i < itemIds; i++) elementIds.push($ax.repeater.createElementId(shapeId, itemIds[i]));
-            }
-            for(var index = 0; index < elementIds.length; index++) {
-                var elementId = _getButtonShapeId(elementIds[index]);
-                if(elementId) {
-                    var textId = $ax.style.GetTextIdFromShape(elementId);
-                    _resetTextJson(elementId, textId);
-                    _applyImageAndTextJson(elementId, $ax.style.generateState(elementId));
-                }
+            if(repeaterId) continue;
+            var elementId = _getButtonShapeId(shapeId);
+            if(elementId) {
+                _applyImageAndTextJson(elementId, $ax.style.generateState(elementId));
             }
         }
 
